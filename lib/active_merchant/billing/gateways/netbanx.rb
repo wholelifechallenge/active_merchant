@@ -129,9 +129,7 @@ module ActiveMerchant #:nodoc:
         post[:card][:holderName] = credit_card.name
         post[:card][:cvv]        = credit_card.verification_value
         post[:card][:cardExpiry] = expdate(credit_card)
-        if options[:billing_address]
-          post[:card][:billingAddress]  = map_address(options[:billing_address])
-        end
+        post[:card][:billingAddress]  = map_address(options[:billing_address]) if options[:billing_address]
       end
 
       def add_invoice(post, money, options)
