@@ -56,6 +56,68 @@ class RemoteSafeChargeTest < Test::Unit::TestCase
     assert_equal 'Success', response.message
   end
 
+  def test_successful_purchase_with_mpi_options_3ds_1
+    options = @options.merge({
+      three_d_secure: {
+        xid: '00000000000000000501',
+        eci: '05',
+        cavv: 'jJ81HADVRtXfCBATEp01CJUAAAA='
+      }
+    })
+
+    response = @gateway.purchase(@amount, @three_ds_enrolled_card, options)
+    assert_success response
+    assert_equal 'Success', response.message
+  end
+
+  def test_successful_purchase_with_mpi_options_3ds_2
+    options = @options.merge({
+      three_d_secure: {
+        version: '2.1.0',
+        ds_transaction_id: 'c5b808e7-1de1-4069-a17b-f70d3b3b1645',
+        xid: '00000000000000000501',
+        eci: '05',
+        cavv: 'Vk83Y2t0cHRzRFZzRlZlR0JIQXo='
+      }
+    })
+
+    response = @gateway.purchase(@amount, @three_ds_enrolled_card, options)
+    assert_success response
+    assert_equal 'Success', response.message
+  end
+
+  def test_failed_purchase_with_mpi_options_3ds_2
+    options = @options.merge({
+      three_d_secure: {
+        version: '2.1.0',
+        ds_transaction_id: 'c5b808e7-1de1-4069-a17b-f70d3b3b1645',
+        xid: '00000000000000000501',
+        eci: '05',
+        cavv: 'Vk83Y2t0cHRzRFZzRlZlR0JIQXo='
+      }
+    })
+
+    response = @gateway.purchase(@amount, @declined_card, options)
+    assert_failure response
+    assert_equal 'Decline', response.message
+  end
+
+  def test_successful_authorize_with_mpi_options_3ds_2
+    options = @options.merge({
+      three_d_secure: {
+        version: '2.1.0',
+        ds_transaction_id: 'c5b808e7-1de1-4069-a17b-f70d3b3b1645',
+        xid: '00000000000000000501',
+        eci: '05',
+        cavv: 'Vk83Y2t0cHRzRFZzRlZlR0JIQXo='
+      }
+    })
+
+    response = @gateway.authorize(@amount, @three_ds_enrolled_card, options)
+    assert_success response
+    assert_equal 'Success', response.message
+  end
+
   def test_successful_purchase_with_more_options
     options = {
       order_id: '1',
@@ -121,7 +183,7 @@ class RemoteSafeChargeTest < Test::Unit::TestCase
     auth = @gateway.authorize(@amount, @credit_card, @options)
     assert_success auth
 
-    assert capture = @gateway.capture(@amount-1, auth.authorization)
+    assert capture = @gateway.capture(@amount - 1, auth.authorization)
     assert_success capture
   end
 
@@ -230,5 +292,4 @@ class RemoteSafeChargeTest < Test::Unit::TestCase
     assert_scrubbed(@credit_card.verification_value, transcript)
     assert_scrubbed(@gateway.options[:client_password], transcript)
   end
-
 end
